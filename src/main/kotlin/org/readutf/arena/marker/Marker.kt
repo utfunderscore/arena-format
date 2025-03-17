@@ -24,6 +24,7 @@ data class Marker(
         fun fromSign(blockEntity: BlockEntityData): Marker? {
             val signLines = extractMarkerLines(blockEntity.data)
             if (signLines.size != 4 || !signLines[0].equals("#marker", true)) {
+                logger.info("Invalid sign for marker at ${blockEntity.position}")
                 return null
             }
 
