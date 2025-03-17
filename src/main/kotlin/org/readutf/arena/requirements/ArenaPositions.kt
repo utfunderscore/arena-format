@@ -1,3 +1,3 @@
 package org.readutf.arena.requirements
 
-interface BuildRequirements
+interface ArenaPositions

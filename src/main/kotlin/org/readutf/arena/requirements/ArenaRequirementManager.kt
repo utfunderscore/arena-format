@@ -4,7 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.getOrElse
-import org.readutf.arena.position.Position
+import org.readutf.arena.marker.Marker
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -12,7 +12,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
 
-class ArenaRequirementManager {
+object ArenaRequirementManager {
     private val logger = LoggerFactory.getLogger(ArenaRequirementManager::class.java)
     private val positionTypes = mutableMapOf<String, List<Regex>>()
 
@@ -20,8 +20,7 @@ class ArenaRequirementManager {
      * Converts a data class with parameters annotated [Requirement] into a list of regexes
      * that can be used to filter positions
      */
-    @Throws(Exception::class)
-    fun <T : BuildRequirements> generateValidators(
+    fun <T : ArenaPositions> generateRequirements(
         gameType: String,
         positionRequirements: KClass<T>,
     ): Result<List<Regex>, Throwable> {
@@ -40,11 +39,11 @@ class ArenaRequirementManager {
                 return Err(Exception("${parameter.name} is not a valid type"))
             }
 
-            if (classifier.isSubclassOf(BuildRequirements::class)) {
+            if (classifier.isSubclassOf(ArenaPositions::class)) {
                 requirements.addAll(
-                    generateValidators(
+                    generateRequirements(
                         "reserved",
-                        classifier as KClass<out BuildRequirements>,
+                        classifier as KClass<out ArenaPositions>,
                     ).getOrElse { return Err(it) },
                 )
                 continue
@@ -75,8 +74,8 @@ class ArenaRequirementManager {
     /**
      * Converts a map of positions into the build requirements class
      */
-    fun <T : BuildRequirements> constructBuildRequirements(
-        positions: Map<String, Position>,
+    fun <T : ArenaPositions> constructBuildRequirements(
+        positions: Map<String, Marker>,
         positionSettingsType: KClass<out T>,
     ): Result<T, Throwable> {
         if (positionSettingsType.qualifiedName == null) {
@@ -95,15 +94,15 @@ class ArenaRequirementManager {
             if (classifier !is KClass<*> ||
                 (
                     classifier != List::class &&
-                        classifier != Position::class &&
-                        !classifier.isSubclassOf(BuildRequirements::class)
+                        classifier != Marker::class &&
+                        !classifier.isSubclassOf(ArenaPositions::class)
                 )
             ) {
                 return Err(Exception("Unable to construct requirement of type ${parameter.type}"))
             }
 
-            if (classifier.isSubclassOf(BuildRequirements::class)) {
-                val subClass = classifier as KClass<out BuildRequirements>
+            if (classifier.isSubclassOf(ArenaPositions::class)) {
+                val subClass = classifier as KClass<out ArenaPositions>
                 parameters.add(constructBuildRequirements(positions, subClass).getOrElse { return Err(it) })
             } else {
                 val annotation =
@@ -131,10 +130,20 @@ class ArenaRequirementManager {
         }
     }
 
+    fun testRequirements(
+        requirements: List<Regex>,
+        positions: Map<String, Marker>,
+    ): Boolean =
+        requirements.all { regex ->
+            positions.keys.any {
+                it.matches(regex)
+            }
+        }
+
     private fun getParameterForType(
         regex: Regex,
         parameter: KParameter,
-        positions: Map<String, Position>,
+        positions: Map<String, Marker>,
     ): Result<Any, Throwable> {
         val isList = parameter.type.classifier == List::class
 

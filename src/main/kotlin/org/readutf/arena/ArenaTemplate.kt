@@ -1,9 +1,10 @@
 package org.readutf.arena
 
-import org.readutf.arena.position.Position
+import org.readutf.arena.marker.Marker
 
-data class ArenaTemplate(
+open class ArenaTemplate(
     val name: String,
-    val formatId: Int,
-    val positions: Map<String, Position>,
+    val formatId: String,
+    val markers: Map<String, Marker>,
+    val buildData: ByteArray,
 )
