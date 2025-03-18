@@ -11,8 +11,6 @@ import kotlin.reflect.KClass
 class ArenaManager<T : ArenaTemplate>(
     private val arenaFormat: ArenaFormat<T>,
 ) {
-    private val requirements = mutableMapOf<KClass<out ArenaPositions>, List<Regex>>()
-
     fun createTemplate(
         name: String,
         spongeSchematicData: ByteArray,
@@ -34,7 +32,7 @@ class ArenaManager<T : ArenaTemplate>(
 
         return Ok(
             Arena(
-                instance = instance,
+                world = instance,
                 arenaRequirements = arenaPositions,
             ),
         )

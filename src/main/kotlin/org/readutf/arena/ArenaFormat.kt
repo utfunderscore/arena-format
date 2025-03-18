@@ -1,7 +1,7 @@
 package org.readutf.arena
 
 import com.github.michaelbull.result.Result
-import net.minestom.server.instance.Instance
+import org.readutf.arena.world.PlatformWorld
 
 interface ArenaFormat<TEMPLATE : ArenaTemplate> {
     fun createArenaTemplate(
@@ -9,5 +9,5 @@ interface ArenaFormat<TEMPLATE : ArenaTemplate> {
         spongeSchematicData: ByteArray,
     ): Result<TEMPLATE, Throwable>
 
-    fun loadInstance(arenaTemplate: TEMPLATE): Result<Instance, Throwable>
+    fun loadInstance(arenaTemplate: TEMPLATE): Result<PlatformWorld, Throwable>
 }

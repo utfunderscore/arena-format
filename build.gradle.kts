@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.readutf.arenaformat"
-version = "1.0.9"
+version = "1.0.16"
 
 repositories {
     mavenCentral()
@@ -20,9 +20,7 @@ dependencies {
     api("com.michael-bull.kotlin-result:kotlin-result:2.0.1")
     api("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
 
-    api("dev.hollowcube:polar:1.13.0")
-    api("net.minestom:minestom-snapshots:39d445482f")
-    api("dev.hollowcube:schem:2.0.0")
+    implementation("net.sandrohc:schematic4j:1.1.0")
 }
 
 publishing {
@@ -43,6 +41,11 @@ publishing {
             credentials(PasswordCredentials::class)
         }
     }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 tasks.test {
