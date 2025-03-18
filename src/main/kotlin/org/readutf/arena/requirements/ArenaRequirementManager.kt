@@ -4,6 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.getOrElse
+import net.minestom.server.coordinate.Pos
 import org.readutf.arena.marker.Marker
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
@@ -95,6 +96,7 @@ object ArenaRequirementManager {
                 (
                     classifier != List::class &&
                         classifier != Marker::class &&
+                        classifier != Pos::class &&
                         !classifier.isSubclassOf(ArenaPositions::class)
                 )
             ) {
@@ -123,6 +125,7 @@ object ArenaRequirementManager {
         }
 
         try {
+            logger.debug("Constructing with parameters: {}", parameters.map { it.javaClass.simpleName })
             val positionData = primaryConstructor.call(*parameters.toTypedArray())
             return Ok(positionData)
         } catch (e: Exception) {
@@ -130,22 +133,13 @@ object ArenaRequirementManager {
         }
     }
 
-    fun testRequirements(
-        requirements: List<Regex>,
-        positions: Map<String, Marker>,
-    ): Boolean =
-        requirements.all { regex ->
-            positions.keys.any {
-                it.matches(regex)
-            }
-        }
-
     private fun getParameterForType(
         regex: Regex,
         parameter: KParameter,
         positions: Map<String, Marker>,
     ): Result<Any, Throwable> {
         val isList = parameter.type.classifier == List::class
+        val isPos = parameter.type.classifier == Pos::class
 
         if (isList) {
             val values = positions.filter { it.key.matches(regex) }.values
@@ -153,7 +147,12 @@ object ArenaRequirementManager {
             if (values.isEmpty()) {
                 return Err(Exception("No positions found for ${parameter.name} matching $regex"))
             }
-            return Ok(values.toList())
+
+            return if (isPos) {
+                Ok(values.toList().map { Pos.fromPoint(it.targetPosition) })
+            } else {
+                Ok(values.toList())
+            }
         } else {
             val multipleOptions = positions.filter { it.key.matches(regex) }.values
 
@@ -164,9 +163,11 @@ object ArenaRequirementManager {
                 logger.warn("Multiple positions found for ${parameter.name} matching $regex")
             }
 
-            val value = multipleOptions.first()
-
-            return Ok(value)
+            return if (isPos) {
+                Ok(Pos.fromPoint(multipleOptions.first().targetPosition))
+            } else {
+                Ok(multipleOptions.first())
+            }
         }
     }
 }
