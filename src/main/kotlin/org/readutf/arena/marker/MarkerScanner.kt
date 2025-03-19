@@ -7,7 +7,7 @@ object MarkerScanner {
     /**
      * Takes an input schematic, scans across all tile entities and returns any valid markers
      */
-    fun scanSchematic(schematic: Schematic): List<Marker?> {
+    fun scanSchematic(schematic: Schematic): List<Marker> {
         val blockEntities = schematic.blockEntities().associateBy { it -> it.position }
         val blocks = mutableMapOf<Point, MarkerRotation>()
         schematic.forEachBlock { point, block ->
@@ -15,7 +15,7 @@ object MarkerScanner {
                 blocks[point] = MarkerRotation.entries.getOrNull(block.getProperty("rotation").toIntOrNull() ?: 0) ?: MarkerRotation.NORTH
             }
         }
-        return blockEntities.map { (point, entity) ->
+        return blockEntities.mapNotNull { (point, entity) ->
             val rotation = blocks[point] ?: MarkerRotation.NORTH
             Marker.fromSign(entity, rotation)
         }
