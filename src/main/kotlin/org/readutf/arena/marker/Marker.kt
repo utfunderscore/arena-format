@@ -29,7 +29,7 @@ data class Marker(
             val signLines = extractMarkerLines(blockEntity.data)
 
             if (signLines.size != 4 || !signLines[0].equals("#marker", true)) {
-                logger.info("Invalid sign for marker at ${blockEntity.position}")
+                logger.debug("Invalid sign for marker at {}", blockEntity.position)
                 return null
             }
 
@@ -42,7 +42,7 @@ data class Marker(
                 if (offsetParts.size == 3) {
                     Pos(offsetParts[0], offsetParts[1], offsetParts[2])
                 } else {
-                    logger.warn("Invalid offset for marker $name")
+                    logger.debug("Invalid offset for marker $name")
                     Pos(0.0, 0.0, 0.0)
                 }
 
