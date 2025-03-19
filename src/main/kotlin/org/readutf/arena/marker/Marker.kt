@@ -16,12 +16,16 @@ data class Marker(
     val name: String,
     val targetPosition: Point,
     val originalPosition: Point,
+    val direction: MarkerRotation,
     val signLines: List<String>,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(Marker::class.java)
 
-        fun fromSign(blockEntity: BlockEntityData): Marker? {
+        fun fromSign(
+            blockEntity: BlockEntityData,
+            rotation: MarkerRotation,
+        ): Marker? {
             val signLines = extractMarkerLines(blockEntity.data)
 
             if (signLines.size != 4 || !signLines[0].equals("#marker", true)) {
@@ -42,7 +46,7 @@ data class Marker(
                     Pos(0.0, 0.0, 0.0)
                 }
 
-            return Marker(name, position, position.add(offset), signLines)
+            return Marker(name, position, position.add(offset), rotation, signLines)
         }
 
         private fun extractMarkerLines(compoundBinaryTag: CompoundBinaryTag): List<String> =
